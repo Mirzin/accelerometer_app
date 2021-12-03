@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "364969424623",
+    "firebase_url": "https://sensors-f3a88-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "sensors-f3a88",
+    "storage_bucket": "sensors-f3a88.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:364969424623:android:2d07902422d1aab42ecd1a",
+        "android_client_info": {
+          "package_name": "com.example.sensors_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "364969424623-147764gib35cs5cpjighd86sa8k33qmk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAskd1oYdV5LBejIwkvxwOci65q3jMXkMQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "364969424623-147764gib35cs5cpjighd86sa8k33qmk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
