@@ -20,6 +20,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = useTextEditingController();
     final confirmPassword = useTextEditingController();
     final errorText = useState<String?>(null);
+    var _opacity = useState<double>(0);
     return Form(
       key: f,
       child: Scaffold(
@@ -108,8 +109,38 @@ class _RegisterPageState extends State<RegisterPage> {
                     }),
               ),
               Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Opacity(
+                  opacity: _opacity.value,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: ValueListenableBuilder(
+                  valueListenable: errorText,
+                  builder:
+                      (BuildContext context, String? value, Widget? child) {
+                    if (value != null)
+                      return SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: Text(
+                          value,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.red, fontSize: 17),
+                        ),
+                      );
+                    else
+                      return Container();
+                  },
+                ),
+              ),
+              Padding(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 40, horizontal: 15),
+                    const EdgeInsets.only(top: 10, bottom: 40, left: 15, right: 15),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: 55,
@@ -131,16 +162,20 @@ class _RegisterPageState extends State<RegisterPage> {
                         return;
                       }
                       try {
+                        _opacity.value = 1;
                         await FirebaseAuth.instance
                             .createUserWithEmailAndPassword(
                                 email: email.value.text,
                                 password: password.value.text);
-                        await FirebaseAuth.instance.signInWithEmailAndPassword(
-                            email: email.value.text,
-                            password: password.value.text);
+                        await FirebaseAuth.instance
+                            .signInWithEmailAndPassword(
+                                email: email.value.text,
+                                password: password.value.text);
+                        _opacity.value = 0;
                         Navigator.pushNamedAndRemoveUntil(
                             context, "home", (_) => false);
                       } catch (e) {
+                        _opacity.value = 0;
                         if (e is FirebaseAuthException)
                           errorText.value = e.code.replaceAll('-', " ");
                         else
@@ -153,27 +188,6 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(
                 height: 16,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: ValueListenableBuilder(
-                  valueListenable: errorText,
-                  builder:
-                      (BuildContext context, String? value, Widget? child) {
-                    if (value != null)
-                      return SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        child: Text(
-                          value,
-                          textAlign: TextAlign.center,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 17),
-                        ),
-                      );
-                    else
-                      return Container();
-                  },
-                ),
-              )
             ],
           ),
         ),

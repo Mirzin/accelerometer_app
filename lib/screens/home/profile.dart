@@ -21,10 +21,10 @@ class ProfilePage extends StatelessWidget {
                     const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 child: Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const Flexible(
-                        flex: 1,
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
                         child: CircleAvatar(
                           minRadius: 50,
                           child: Icon(
@@ -33,31 +33,23 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Flexible(
-                        flex: 2, 
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              "Email: ",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            Text(
+                      const Text(
+                        "Email: ",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
                               '${user.email}',
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
-                          ],
-                        )
-                      ),
-                      Flexible(
-                        flex: 3,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
                         child: ElevatedButton(
                           child: const Text("Sign out"),
                           onPressed: () async {

@@ -1,15 +1,18 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sensors_app/screens/authenticate/login.dart';
 import 'package:sensors_app/screens/authenticate/register.dart';
 import 'package:sensors_app/screens/home/accgraph.dart';
+import 'package:sensors_app/screens/home/connect.dart';
 import 'package:sensors_app/screens/home/home.dart';
 import 'package:sensors_app/screens/home/profile.dart';
 import 'package:sensors_app/screens/home/readings.dart';
 import 'package:sensors_app/screens/home/viewgraph.dart';
 import 'package:sensors_app/wrapper.dart';
+
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
@@ -19,6 +22,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Sensors Demo',
@@ -27,14 +34,15 @@ class MyApp extends StatelessWidget {
       ),
       //initialRoute: "graph",
       routes: {
-        "/" : (ctx) => const Wrapper(),
-        "home" : (ctx) => const HomePage(),
-        "sfgraph" : (ctx) => AccGraph(),
-        "readings" : (ctx) => Readings(),
-        "viewgraph" : (ctx) =>const ViewGraph(),
-        "register" : (ctx) => const RegisterPage(),
-        "login" : (ctx) => const Login(),
-        "profile" : (ctx) => const ProfilePage(),
+        "/": (ctx) => const Wrapper(),
+        "home": (ctx) => const HomePage(),
+        "sfgraph": (ctx) => AccGraph(),
+        "readings": (ctx) => Readings(),
+        "viewgraph": (ctx) => const ViewGraph(),
+        "register": (ctx) => const RegisterPage(),
+        "login": (ctx) => const Login(),
+        "profile": (ctx) => const ProfilePage(),
+        "connect" : (ctx) => const Connect(),
       },
     );
   }

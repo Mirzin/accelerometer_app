@@ -19,7 +19,7 @@ class Readings extends StatelessWidget {
         title: const Text("Readings"),
       ),
       body: StreamBuilder(
-        stream: db.child("$uid/Readings").onValue,
+        stream: db.child("users/$uid/Readings").onValue,
         builder: (context, snapshot) {
           if(snapshot.hasData && (snapshot.data! as Event).snapshot.exists) {
             //print((snapshot.data! as Event).snapshot.exists);

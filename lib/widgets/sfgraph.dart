@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sensors_app/models/accelerometer_readings.dart';
@@ -9,32 +10,31 @@ import 'dart:async';
 import 'package:sensors/sensors.dart';
 
 class SFGraph extends StatefulWidget {
-  const SFGraph({Key? key, required this.appbar}) : super(key: key);
-  final AppBar appbar;
+  const SFGraph({Key? key}) : super(key: key);
   @override
   _SFGraphState createState() => _SFGraphState();
 }
 
 class _SFGraphState extends State<SFGraph> {
   late Map<dynamic, dynamic> arguments;
-  int period = 60;
   Timer? timer;
+  int period = 60;
   final db = FirebaseDatabase.instance.reference();
   final uid = FirebaseAuth.instance.currentUser!.uid.toString();
   List<double> xaxis = [], yaxis = [], zaxis = [], time = [];
-  List<StreamSubscription<dynamic>> streamSubscriptions =
-      <StreamSubscription<dynamic>>[];
+  late StreamSubscription streamSubscriptions;
   List<AccelerometerReadings> xspots = [];
   List<AccelerometerReadings> yspots = [];
   List<AccelerometerReadings> zspots = [];
-  double x = 0, y = 0, z = 0, opacity = 0; // _progress = 0;
+  double x = 0, y = 0, z = 0, opacity = 0;
   num t = 0;
+  late String name;
 
   void _plotGraph() async {
     // setState(() {
     //   _progress= t/period;
     // });
-    if (t + period * 1000 < DateTime.now().millisecondsSinceEpoch) {
+    if (t + period * 1000 < DateTime.now().millisecondsSinceEpoch - 200) {
       timer!.cancel();
       _storeData();
     }
@@ -54,15 +54,13 @@ class _SFGraphState extends State<SFGraph> {
     zaxis.add(z);
     time.add(xt);
   }
-
   void _storeData() {
-    //print(time);
-    final now = DateFormat.yMMMd().add_Hm().format(DateTime.now());
+    final now = DateFormat.yMMMd().add_Hm().format(DateTime.now()) + name;
     setState(() {
       opacity = 1;
     });
 
-    db.child("$uid/Readings/$now").set({
+    db.child("users/$uid/Readings/$now").set({
       "id": now,
       "x-axis": xaxis,
       "y-axis": yaxis,
@@ -74,35 +72,11 @@ class _SFGraphState extends State<SFGraph> {
   @override
   Widget build(BuildContext context) {
     final arguments = ModalRoute.of(context)!.settings.arguments as Map;
-    period = arguments["period"];
+    period = arguments['period'];
+    name = arguments['name'];
     //print("Building");
     return Stack(
       children: [
-        // Column(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     const Text(
-        //       "Recording Accelerometer Values",
-        //       style: TextStyle(
-        //         fontSize: 15,
-        //         fontWeight: FontWeight.bold,
-        //       ),
-        //     ),
-        //     const SizedBox(height: 20,),
-        //     Padding(
-        //       padding: const EdgeInsets.only(right: 10, left: 10),
-        //       child: Center(
-        //         child: ClipRRect(
-        //           borderRadius: BorderRadius.circular(15),
-        //           child: LinearProgressIndicator(
-        //             minHeight: MediaQuery.of(context).size.height * 0.05,
-        //             value: _progress,
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   ],
-        // ),
         Padding(
           padding: const EdgeInsets.only(right: 5, left: 5),
           child: SizedBox(
@@ -144,7 +118,7 @@ class _SFGraphState extends State<SFGraph> {
           child: Container(
             color: Colors.white.withOpacity(0.8),
             height: MediaQuery.of(context).size.height -
-                widget.appbar.preferredSize.height -
+                AppBar().preferredSize.height -
                 MediaQuery.of(context).padding.top,
             width: MediaQuery.of(context).size.width,
             child: Center(
@@ -166,35 +140,21 @@ class _SFGraphState extends State<SFGraph> {
   @override
   void initState() {
     super.initState();
-    // _streamSubscriptions.add(accelerometerEvents.listen((AccelerometerEvent event) {
-    //   setState(() {
-    //     _accelerometerValues = <double>[event.x, event.y, event.z];
-    //   });
-    // }));
-    // _streamSubscriptions.add(gyroscopeEvents.listen((GyroscopeEvent event) {
-    //   setState(() {
-    //     _gyroscopeValues = <double>[event.x, event.y, event.z];
-    //   });
-    // }));
-    t = DateTime.now().millisecondsSinceEpoch;
-    streamSubscriptions
-        .add(userAccelerometerEvents.listen((UserAccelerometerEvent event) {
+    streamSubscriptions = (userAccelerometerEvents.listen((UserAccelerometerEvent event) {
       x = event.x;
       y = event.y;
       z = event.z;
     }));
-    timer = Timer.periodic(const Duration(milliseconds: 20), (Timer timer) {
+    t = DateTime.now().millisecondsSinceEpoch;
+    timer = Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
       _plotGraph();
     });
-    // autoScroll();
   }
 
   @override
   void dispose() {
-    super.dispose();
-    for (StreamSubscription<dynamic> subscription in streamSubscriptions) {
-      subscription.cancel();
-    }
+    streamSubscriptions.cancel();
     timer!.cancel();
+    super.dispose();
   }
 }

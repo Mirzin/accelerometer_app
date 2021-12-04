@@ -14,6 +14,7 @@ class Login extends HookWidget {
     final email = useTextEditingController();
     final password = useTextEditingController();
     final errorText = useState<String?>(null);
+    var _opacity = useState<double>(0);
 
     return Scaffold(
       body: Padding(
@@ -28,7 +29,7 @@ class Login extends HookWidget {
               const Padding(
                 padding: EdgeInsets.all(15),
                 child: Text(
-                  "Log In",
+                  "Login",
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 35,
@@ -73,7 +74,7 @@ class Login extends HookWidget {
                   obscureText: true,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (password) {
-                    if ((password ?? "").length <= 8)
+                    if ((password ?? "").length >= 8)
                       return null;
                     else
                       return "Password must be min 8 characters long";
@@ -81,45 +82,13 @@ class Login extends HookWidget {
                 ),
               ),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 40, horizontal: 15),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 55,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Log In",
-                      style: TextStyle(
-                        fontSize: 18,
-                      ),
-                    ),
-                    onPressed: email.value.text == "" || password.value.text == "" ? () {} : () async {
-                      // if(email.value.text == "" || password.value.text == "") {
-                      //   errorText.value = "Email/Password cannot be Empty";
-                      //   return;
-                      // }
-                      try {
-                        await FirebaseAuth.instance.signInWithEmailAndPassword(
-                            email: email.value.text,
-                            password: password.value.text);  
-                        Navigator.of(context).popAndPushNamed("home");
-                      } catch (e) {
-                        if (e is FirebaseAuthException)
-                          errorText.value = e.code.replaceAll('-', ' ');
-                        else
-                          errorText.value = "Unknown Error";
-                      }
-                    },
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Opacity(
+                  opacity: _opacity.value,
+                  child: const Center(
+                    child: CircularProgressIndicator(),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -133,14 +102,60 @@ class Login extends HookWidget {
                         child: Text(
                           value,
                           textAlign: TextAlign.center,
-                          style:
-                              const TextStyle(color: Colors.red, fontSize: 17),
+                          style: const TextStyle(
+                              color: Colors.red, fontSize: 17),
                         ),
                       );
                     else
                       return Container();
                   },
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 40, left: 15, right: 15),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 55,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 18,
+                      ),
+                    ),
+                    onPressed: () async {
+                            if(email.value.text == "" || password.value.text == "") {
+                              errorText.value = "Email/Password cannot be Empty";
+                              return;
+                            }
+                            try {
+                              FocusScope.of(context).requestFocus(FocusNode());
+                              _opacity.value = 1;
+                              await FirebaseAuth.instance
+                                  .signInWithEmailAndPassword(
+                                      email: email.value.text,
+                                      password: password.value.text);
+                              _opacity.value = 0;
+                              Navigator.of(context).popAndPushNamed("home");
+                            } catch (e) {
+                              _opacity.value = 0;
+                              if (e is FirebaseAuthException)
+                                errorText.value =
+                                    e.code.replaceAll('-', ' ');
+                              else
+                                errorText.value = "Unknown Error";
+                            }
+                          },
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 16,
               ),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15.0),

@@ -12,7 +12,7 @@ class AccGraph extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appbar,
-      body: SFGraph(appbar : appbar),
+      body: const SFGraph(),
     );
   }
 }

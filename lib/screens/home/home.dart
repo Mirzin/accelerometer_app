@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:sensors_app/widgets/dialogue.dart';
 
 class HomePage extends StatefulWidget {
-   const HomePage({ Key? key }) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,45 +18,78 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Accelerometer Readings"),
         centerTitle: true,
         actions: [
-          IconButton(onPressed: (){
-            Navigator.of(context).pushNamed("profile");
-          }, icon: Icon(Icons.account_circle))
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed("profile");
+              },
+              icon: Icon(Icons.account_circle))
         ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton(
-              style: TextButton.styleFrom(
-                primary: Colors.black,
-                backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
-                fixedSize: const Size(200, 70),
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.black,
+                  backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
+                  fixedSize: const Size(200, 70),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                ),
+                child: const Text("Record Accelerometer"),
+                onPressed: () => setTimeDialogue(context, "R"),
               ),
-              child: const Text("Record Accelerometer"),
-              onPressed: () => dialogue(context),
-            ),
-            const SizedBox(height: 20,),
-            TextButton(
-              style: TextButton.styleFrom(
-                primary: Colors.black,
-                backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
-                fixedSize: const Size(200, 70),
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+              const SizedBox(
+                height: 20,
               ),
-              child: const Text("Readings"),
-              onPressed: () {
-                Navigator.pushNamed(context, "readings");
-              },
-            ),
-          ] 
+              TextButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.black,
+                  backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
+                  fixedSize: const Size(200, 70),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                ),
+                child: const Text("Readings"),
+                onPressed: () {
+                  Navigator.pushNamed(context, "readings");
+                },
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.black,
+                  backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
+                  fixedSize: const Size(200, 70),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                ),
+                child: const Text("Record on Multiple Devices"),
+                onPressed: () => setTimeDialogue(context, "M"),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  primary: Colors.black,
+                  backgroundColor: const Color.fromRGBO(227, 227, 227, 1),
+                  fixedSize: const Size(200, 70),
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                ),
+                child: const Text("Connect"),
+                onPressed: () => setNameDialogue(context),
+              ),
+            ]),
+          ),
         ),
       ),
     );
   }
-
-  
-
-  
 }
