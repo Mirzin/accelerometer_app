@@ -74,7 +74,14 @@ class _SFGraphState extends State<SFGraph> {
       "y-axis": yaxis,
       "z-axis": zaxis,
       "time": time,
-    }).then((value) => Navigator.popAndPushNamed(context, "readings"));
+    }).then(
+        (value) => Navigator.popAndPushNamed(context, "viewgraph", arguments: {
+              "id": now,
+              "xspots": xaxis,
+              "yspots": yaxis,
+              "zspots": zaxis,
+              "time": time,
+            }));
   }
 
   @override
@@ -96,15 +103,46 @@ class _SFGraphState extends State<SFGraph> {
               ),
             )
           : Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 5, left: 5),
+                  padding: const EdgeInsets.only(right: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: const [
+                      Text("x"),
+                      SizedBox(width: 2),
+                      CircleAvatar(backgroundColor: Colors.blue, radius: 7),
+                      SizedBox(width: 5),
+                      Text("y"),
+                      SizedBox(width: 2),
+                      CircleAvatar(backgroundColor: Colors.yellow, radius: 7),
+                      SizedBox(width: 5),
+                      Text("z"),
+                      SizedBox(width: 2),
+                      CircleAvatar(backgroundColor: Colors.red, radius: 7),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 5),
                   child: SizedBox(
-                    width: MediaQuery.of(context).size.width - 10,
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        (AppBar().preferredSize.height * 2) -
+                        10,
                     child: SfCartesianChart(
                       primaryXAxis: NumericAxis(
-                          edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          title: AxisTitle(
+                            text: "Time (seconds)",
+                            textStyle: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          edgeLabelPlacement: EdgeLabelPlacement.shift
+                      ),
                       series: <ChartSeries>[
                         LineSeries<AccelerometerReadings, double>(
                           color: Colors.blue,
@@ -311,7 +349,8 @@ class _SFGraphState extends State<SFGraph> {
       }
       if (mounted) {
         setState(() {
-          starttext = time <= 0 ? "Recording" : (time / 1000).toStringAsFixed(2);
+          starttext =
+              time <= 0 ? "Recording" : (time / 1000).toStringAsFixed(2);
         });
       }
     });
@@ -352,7 +391,7 @@ class _SFGraphState extends State<SFGraph> {
       final int time = DateTime(DateTime.now().year, DateTime.now().month,
               DateTime.now().day, data["hour"], data["minute"])
           .millisecondsSinceEpoch;
-    startTimer(time);
+      startTimer(time);
     }
     stream = await SensorManager().sensorUpdates(
       sensorId: Sensors.LINEAR_ACCELERATION,

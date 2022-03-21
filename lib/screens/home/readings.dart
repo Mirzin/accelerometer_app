@@ -56,7 +56,7 @@ class _ReadingsState extends State<Readings> {
                   trailing: ElevatedButton(
                       style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
-                              const Size.fromRadius(22)),
+                              const Size.fromRadius(20)),
                           backgroundColor:
                               MaterialStateProperty.all(Colors.red),
                           shape: MaterialStateProperty.all<CircleBorder>(

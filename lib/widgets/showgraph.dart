@@ -35,9 +35,9 @@ class _ShowGraphState extends State<ShowGraph> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-          padding: const EdgeInsets.only(right: 5, left: 5),
+          padding: const EdgeInsets.only(right: 5),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width - 10,
+            width: MediaQuery.of(context).size.width,
             child: SfCartesianChart(
               zoomPanBehavior: ZoomPanBehavior(
                 enablePinching: true,
