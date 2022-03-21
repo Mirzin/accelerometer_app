@@ -165,11 +165,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         _opacity.value = 1;
                         await FirebaseAuth.instance
                             .createUserWithEmailAndPassword(
-                                email: email.value.text,
+                                email: email.value.text.trim(),
                                 password: password.value.text);
                         await FirebaseAuth.instance
                             .signInWithEmailAndPassword(
-                                email: email.value.text,
+                                email: email.value.text.trim(),
                                 password: password.value.text);
                         _opacity.value = 0;
                         Navigator.pushNamedAndRemoveUntil(
@@ -184,9 +184,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 16,
               ),
             ],
           ),

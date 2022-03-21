@@ -1,10 +1,11 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:sensors_app/screens/authenticate/register.dart';
+import 'package:sensors_app/screens/home/home.dart';
+import 'package:sensors_app/services/custompageroute.dart';
 
 class Login extends HookWidget {
   const Login({Key? key}) : super(key: key);
@@ -102,8 +103,8 @@ class Login extends HookWidget {
                         child: Text(
                           value,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              color: Colors.red, fontSize: 17),
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 17),
                         ),
                       );
                     else
@@ -112,7 +113,8 @@ class Login extends HookWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 40, left: 15, right: 15),
+                padding: const EdgeInsets.only(
+                    top: 10, bottom: 40, left: 15, right: 15),
                 child: SizedBox(
                   width: MediaQuery.of(context).size.width,
                   height: 55,
@@ -129,28 +131,27 @@ class Login extends HookWidget {
                       ),
                     ),
                     onPressed: () async {
-                            if(email.value.text == "" || password.value.text == "") {
-                              errorText.value = "Email/Password cannot be Empty";
-                              return;
-                            }
-                            try {
-                              FocusScope.of(context).requestFocus(FocusNode());
-                              _opacity.value = 1;
-                              await FirebaseAuth.instance
-                                  .signInWithEmailAndPassword(
-                                      email: email.value.text,
-                                      password: password.value.text);
-                              _opacity.value = 0;
-                              Navigator.of(context).popAndPushNamed("home");
-                            } catch (e) {
-                              _opacity.value = 0;
-                              if (e is FirebaseAuthException)
-                                errorText.value =
-                                    e.code.replaceAll('-', ' ');
-                              else
-                                errorText.value = "Unknown Error";
-                            }
-                          },
+                      if (email.value.text == "" || password.value.text == "") {
+                        errorText.value = "Email/Password cannot be Empty";
+                        return;
+                      }
+                      try {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        _opacity.value = 1;
+                        await FirebaseAuth.instance.signInWithEmailAndPassword(
+                            email: email.value.text.trim(),
+                            password: password.value.text);
+                        _opacity.value = 0;
+                        Navigator.of(context)
+                            .pushReplacement(CustomPageRoute(child: const HomePage()));
+                      } catch (e) {
+                        _opacity.value = 0;
+                        if (e is FirebaseAuthException)
+                          errorText.value = e.code.replaceAll('-', ' ');
+                        else
+                          errorText.value = "Unknown Error";
+                      }
+                    },
                   ),
                 ),
               ),
@@ -180,7 +181,8 @@ class Login extends HookWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed("register");
+                        Navigator.of(context)
+                            .push(CustomPageRoute(child: const RegisterPage()));
                       },
                       child: const Text(
                         "Sign up",

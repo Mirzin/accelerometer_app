@@ -1,66 +1,74 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sensors_app/models/accelerometer_readings.dart';
+import 'package:sensors_app/models/period_time.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:async';
-import 'package:sensors/sensors.dart';
+import 'package:flutter_sensors/flutter_sensors.dart';
 
 class SFGraph extends StatefulWidget {
-  const SFGraph({Key? key}) : super(key: key);
+  const SFGraph({Key? key, required this.name, required this.slave})
+      : super(key: key);
+  final String name;
+  final bool slave;
   @override
   _SFGraphState createState() => _SFGraphState();
 }
 
 class _SFGraphState extends State<SFGraph> {
-  late Map<dynamic, dynamic> arguments;
-  Timer? timer;
-  int period = 60;
-  final db = FirebaseDatabase.instance.reference();
+  late String now;
+  final db = FirebaseDatabase.instance.ref();
   final uid = FirebaseAuth.instance.currentUser!.uid.toString();
+
+  late StreamSubscription _accelSubscription;
+  late Stream<SensorEvent> stream;
+  late PeriodTime data;
   List<double> xaxis = [], yaxis = [], zaxis = [], time = [];
-  late StreamSubscription streamSubscriptions;
   List<AccelerometerReadings> xspots = [];
   List<AccelerometerReadings> yspots = [];
   List<AccelerometerReadings> zspots = [];
-  double x = 0, y = 0, z = 0, opacity = 0;
-  num t = 0;
-  late String name;
+  double xt = 0, x = 0, y = 0, z = 0, c = 0;
+  num t = DateTime.now().millisecondsSinceEpoch;
+  bool _storing = false;
+  int period = 60;
+  String buttonText = "Select time";
+  String starttext = "Start";
+  TimeOfDay selectedtime = TimeOfDay.now();
 
-  void _plotGraph() async {
-    // setState(() {
-    //   _progress= t/period;
-    // });
+  void _plotGraph() {
     if (t + period * 1000 < DateTime.now().millisecondsSinceEpoch - 200) {
-      timer!.cancel();
+      _accelSubscription.cancel();
+      //ui!.cancel();
       _storeData();
     }
-    double xt = (DateTime.now().millisecondsSinceEpoch - t) / 1000;
-    setState(() {
-      xspots.add(AccelerometerReadings(x, xt));
-      yspots.add(AccelerometerReadings(y, xt));
-      zspots.add(AccelerometerReadings(z, xt));
-      if (xspots.length > 100) {
-        xspots.removeAt(0);
-        yspots.removeAt(0);
-        zspots.removeAt(0);
-      }
-    });
+    xt = (DateTime.now().millisecondsSinceEpoch - t) / 1000;
+    if (c % 5 == 0) {
+      setState(() {
+        xspots.add(AccelerometerReadings(x, xt));
+        yspots.add(AccelerometerReadings(y, xt));
+        zspots.add(AccelerometerReadings(z, xt));
+        if (xspots.length > 20) {
+          xspots.removeAt(0);
+          yspots.removeAt(0);
+          zspots.removeAt(0);
+        }
+      });
+    }
     xaxis.add(x);
     yaxis.add(y);
     zaxis.add(z);
     time.add(xt);
+    c++;
   }
-  void _storeData() {
-    final now = DateFormat.yMMMd().add_Hm().format(DateTime.now()) + name;
-    setState(() {
-      opacity = 1;
-    });
 
-    db.child("users/$uid/Readings/$now").set({
+  void _storeData() {
+    setState(() {
+      _storing = true;
+    });
+    String key = DateTime.now().millisecondsSinceEpoch.toString();
+    db.child("users/$uid/Readings/$key").set({
       "id": now,
       "x-axis": xaxis,
       "y-axis": yaxis,
@@ -71,57 +79,13 @@ class _SFGraphState extends State<SFGraph> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)!.settings.arguments as Map;
-    period = arguments['period'];
-    name = arguments['name'];
-    //print("Building");
-    return Stack(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 5, left: 5),
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width - 10,
-            child: SfCartesianChart(
-              primaryXAxis:
-                  NumericAxis(edgeLabelPlacement: EdgeLabelPlacement.shift),
-              series: <ChartSeries>[
-                LineSeries<AccelerometerReadings, double>(
-                  color: Colors.blue,
-                  dataSource: xspots,
-                  xValueMapper: (AccelerometerReadings xspots, _) =>
-                      xspots.time,
-                  yValueMapper: (AccelerometerReadings xspots, _) =>
-                      xspots.reading,
-                ),
-                LineSeries<AccelerometerReadings, double>(
-                  color: Colors.yellow,
-                  dataSource: yspots,
-                  xValueMapper: (AccelerometerReadings yspots, _) =>
-                      yspots.time,
-                  yValueMapper: (AccelerometerReadings yspots, _) =>
-                      yspots.reading,
-                ),
-                LineSeries<AccelerometerReadings, double>(
-                  color: Colors.red,
-                  dataSource: zspots,
-                  xValueMapper: (AccelerometerReadings zspots, _) =>
-                      zspots.time,
-                  yValueMapper: (AccelerometerReadings zspots, _) =>
-                      zspots.reading,
-                )
-              ],
-            ),
-          ),
-        ),
-        Opacity(
-          opacity: opacity,
-          child: Container(
-            color: Colors.white.withOpacity(0.8),
-            height: MediaQuery.of(context).size.height -
-                AppBar().preferredSize.height -
-                MediaQuery.of(context).padding.top,
-            width: MediaQuery.of(context).size.width,
-            child: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Sensors'),
+        centerTitle: true,
+      ),
+      body: _storing
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
@@ -130,31 +94,288 @@ class _SFGraphState extends State<SFGraph> {
                   Text("Saving Data"),
                 ],
               ),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 5, left: 5),
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width - 10,
+                    child: SfCartesianChart(
+                      primaryXAxis: NumericAxis(
+                          edgeLabelPlacement: EdgeLabelPlacement.shift),
+                      series: <ChartSeries>[
+                        LineSeries<AccelerometerReadings, double>(
+                          color: Colors.blue,
+                          dataSource: xspots,
+                          xValueMapper: (AccelerometerReadings xspots, _) =>
+                              xspots.time,
+                          yValueMapper: (AccelerometerReadings xspots, _) =>
+                              xspots.reading,
+                        ),
+                        LineSeries<AccelerometerReadings, double>(
+                          color: Colors.yellow,
+                          dataSource: yspots,
+                          xValueMapper: (AccelerometerReadings yspots, _) =>
+                              yspots.time,
+                          yValueMapper: (AccelerometerReadings yspots, _) =>
+                              yspots.reading,
+                        ),
+                        LineSeries<AccelerometerReadings, double>(
+                          color: Colors.red,
+                          dataSource: zspots,
+                          xValueMapper: (AccelerometerReadings zspots, _) =>
+                              zspots.time,
+                          yValueMapper: (AccelerometerReadings zspots, _) =>
+                              zspots.reading,
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.06,
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  child: ElevatedButton(
+                    onPressed: widget.slave
+                        ? () {}
+                        : () {
+                            showGeneralDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              barrierLabel: "Choose",
+                              barrierColor: Colors.black.withOpacity(0.5),
+                              pageBuilder: (BuildContext buildContext,
+                                  Animation animation,
+                                  Animation secondaryAnimation) {
+                                return StatefulBuilder(
+                                    builder: (context, setState) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: MediaQuery.of(context)
+                                            .viewInsets
+                                            .bottom),
+                                    child: Center(
+                                      child: SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.35,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                                0.9,
+                                        child: Card(
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          margin: const EdgeInsets.only(
+                                              left: 20, right: 20),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              TextButton(
+                                                style: TextButton.styleFrom(
+                                                  side: const BorderSide(
+                                                      color: Colors.grey),
+                                                  primary: Colors.grey[600],
+                                                  backgroundColor: Colors.white,
+                                                  fixedSize:
+                                                      const Size(200, 55),
+                                                  shape:
+                                                      const RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                                  Radius
+                                                                      .circular(
+                                                                          10))),
+                                                ),
+                                                child: Text(buttonText),
+                                                onPressed: () {
+                                                  _showTimePicker(context)
+                                                      .then((value) {
+                                                    selectedtime =
+                                                        value as TimeOfDay;
+                                                    setState(() {
+                                                      buttonText = selectedtime
+                                                          .format(context);
+                                                    });
+                                                  });
+                                                },
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: SizedBox(
+                                                  width: 200,
+                                                  child: TextField(
+                                                    onChanged: (value) {
+                                                      period = int.parse(value);
+                                                    },
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: Colors.grey[600],
+                                                      fontSize: 14,
+                                                    ),
+                                                    cursorHeight: 25,
+                                                    textAlign: TextAlign.center,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          "Seconds to record",
+                                                      hintStyle: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: Colors.grey[600],
+                                                        fontSize: 14,
+                                                      ),
+                                                      enabledBorder:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        borderSide:
+                                                            const BorderSide(
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 20),
+                                              ElevatedButton(
+                                                child: const Text("Submit"),
+                                                onPressed: () {
+                                                  FocusScope.of(context)
+                                                      .requestFocus(
+                                                          FocusNode());
+                                                  final int time = DateTime(
+                                                          DateTime.now().year,
+                                                          DateTime.now().month,
+                                                          DateTime.now().day,
+                                                          selectedtime.hour,
+                                                          selectedtime.minute)
+                                                      .millisecondsSinceEpoch;
+                                                  data =
+                                                      PeriodTime(period, time);
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                });
+                              },
+                            ).then((_) {
+                              startTimer(data.timerseconds);
+                            });
+                            //start();
+                          },
+                    child: Text(
+                      starttext,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ),
-      ],
     );
+  }
+
+  void startTimer(int t) {
+    int time = t;
+    Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      time = t - DateTime.now().millisecondsSinceEpoch;
+      if (time <= 0) {
+        timer.cancel();
+        start();
+      }
+      if (mounted) {
+        setState(() {
+          starttext = time <= 0 ? "Recording" : (time / 1000).toStringAsFixed(2);
+        });
+      }
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    streamSubscriptions = (userAccelerometerEvents.listen((UserAccelerometerEvent event) {
-      x = event.x;
-      y = event.y;
-      z = event.z;
-    }));
+    init();
+    now =
+        DateFormat.yMMMd().add_jm().format(DateTime.now()) + " " + widget.name;
+  }
+
+  void start() {
+    xaxis = [];
+    yaxis = [];
+    zaxis = [];
+    time = [];
+    xspots = [];
+    yspots = [];
+    zspots = [];
+    now =
+        DateFormat.yMMMd().add_jm().format(DateTime.now()) + " " + widget.name;
     t = DateTime.now().millisecondsSinceEpoch;
-    timer = Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
+    _accelSubscription.onData((event) {
+      x = event.data[0];
+      y = event.data[1];
+      z = event.data[2] + 0.08;
       _plotGraph();
     });
   }
 
+  void init() async {
+    if (widget.slave) {
+      final setdata = await db.child("users/$uid/runtime").get();
+      final data = setdata.value as Map;
+      period = data["period"];
+      final int time = DateTime(DateTime.now().year, DateTime.now().month,
+              DateTime.now().day, data["hour"], data["minute"])
+          .millisecondsSinceEpoch;
+    startTimer(time);
+    }
+    stream = await SensorManager().sensorUpdates(
+      sensorId: Sensors.LINEAR_ACCELERATION,
+      interval: Sensors.SENSOR_DELAY_FASTEST,
+    );
+    _accelSubscription = stream.listen((event) {
+      // x = event.data[0];
+      // y = event.data[1];
+      // z = event.data[2];
+      // _plotGraph();
+    });
+  }
+
+  Future<TimeOfDay?> _showTimePicker(BuildContext context) {
+    return showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+  }
+
   @override
   void dispose() {
-    streamSubscriptions.cancel();
-    timer!.cancel();
+    _accelSubscription.cancel();
     super.dispose();
   }
 }
