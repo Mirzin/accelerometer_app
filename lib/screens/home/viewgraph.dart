@@ -74,7 +74,7 @@ class ViewGraph extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'Permitted Peak \nAcceleration\n (m/s\u00B2)',
+                      'Permissible Peak \nAcceleration\n (m/s\u00B2)',
                       style: style,
                     ),
                   ),
@@ -111,7 +111,7 @@ class ViewGraph extends StatelessWidget {
                         style: style,
                       )),
                       DataCell(Text(
-                        "Calculated Peak \n Combined Accelration (m/s\u00B2)",
+                        "Calculated Peak \n Combined Acceleration (m/s\u00B2)",
                         style: style,
                       )),
                     ],

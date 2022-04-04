@@ -378,7 +378,7 @@ class _SFGraphState extends State<SFGraph> {
     _accelSubscription.onData((event) {
       x = event.data[0];
       y = event.data[1];
-      z = event.data[2] + 0.08;
+      z = event.data[2];
       _plotGraph();
     });
   }
